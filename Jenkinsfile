@@ -1,36 +1,24 @@
 pipeline {
     agent any
-
     environment {
-        AWS_REGION = "us-east-1"
-        AWS_ACCOUNT_ID = "237458753027"
-        ECR_REPO = "node-app"
-        IMAGE_TAG = "latest"
-        DOCKER_IMAGE = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}"
+        APP_SERVER = "ubuntu@10.100.3.135"  // Replace with actual IP
+        IMAGE_NAME = "node-demo-app"
+        REPO_URL = "237458753027.dkr.ecr.us-east-1.amazonaws.com"
     }
-
     stages {
-        stage('Checkout Code') {
+        stage('Build & Push from App Server') {
             steps {
-                git 'https://github.com/shivu9900/node-demo-app.git'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
-            }
-        }
-
-        stage('Login to ECR') {
-            steps {
-                sh 'aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com'
-            }
-        }
-
-        stage('Push to ECR') {
-            steps {
-                sh 'docker push $DOCKER_IMAGE'
+                sshagent(['app-server-key']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no $APP_SERVER '
+                            cd ~/node-demo-app &&
+                            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $REPO_URL &&
+                            docker build -t $IMAGE_NAME:latest . &&
+                            docker tag $IMAGE_NAME:latest $REPO_URL/$IMAGE_NAME:latest &&
+                            docker push $REPO_URL/$IMAGE_NAME:latest
+                        '
+                    """
+                }
             }
         }
     }
