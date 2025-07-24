@@ -40,5 +40,29 @@ pipeline {
                 }
             }
         }
+         stage('Deploy to App Host') {
+            steps {
+                echo 'Deploying container on app host...'
+                sh """
+                ssh -o StrictHostKeyChecking=no -i ~/.ssh/upgrad_task_key ubuntu@10.100.3.135 << 'ENDSSH'
+                  # Stop and remove existing container (if any)
+                  if docker ps -q --filter name=node-demo-app | grep -q .; then
+                    echo "Stopping old container..."
+                    docker stop node-demo-app
+                    docker rm node-demo-app
+                  fi
+
+                  # Login to ECR
+                  aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 237458753027.dkr.ecr.us-east-1.amazonaws.com
+
+                  # Pull latest image
+                  docker pull 237458753027.dkr.ecr.us-east-1.amazonaws.com/node-demo-app:latest
+
+                  # Run the new container
+                  docker run -d --name node-demo-app -p 5000:5000 237458753027.dkr.ecr.us-east-1.amazonaws.com/node-demo-app:latest
+                ENDSSH
+                """
+            }
+        }
     }
 }
