@@ -43,7 +43,7 @@ pipeline {
          stage('Deploy to App Host') {
             steps {
                 echo 'Deploying container on app host...'
-                sh """
+                sh '''
                 ssh -o StrictHostKeyChecking=no -i ~/.ssh/upgrad_task_key ubuntu@10.100.3.135 << 'ENDSSH'
                   # Stop and remove existing container (if any)
                   if docker ps -q --filter name=node-demo-app | grep -q .; then
@@ -61,7 +61,7 @@ pipeline {
                   # Run the new container
                   docker run -d --name node-demo-app -p 5000:5000 237458753027.dkr.ecr.us-east-1.amazonaws.com/node-app:latest
                 ENDSSH
-                """
+                '''
             }
         }
     }
