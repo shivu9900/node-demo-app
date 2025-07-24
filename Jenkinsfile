@@ -56,10 +56,10 @@ pipeline {
                   aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 237458753027.dkr.ecr.us-east-1.amazonaws.com
 
                   # Pull latest image
-                  docker pull 237458753027.dkr.ecr.us-east-1.amazonaws.com/node-demo-app:latest
+                  docker pull 237458753027.dkr.ecr.us-east-1.amazonaws.com/node-app:latest
 
                   # Run the new container
-                  docker run -d --name node-demo-app -p 5000:5000 237458753027.dkr.ecr.us-east-1.amazonaws.com/node-demo-app:latest
+                  docker run -d --name node-demo-app -p 5000:5000 237458753027.dkr.ecr.us-east-1.amazonaws.com/node-app:latest
                 ENDSSH
                 """
             }
